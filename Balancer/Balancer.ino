@@ -1,4 +1,4 @@
-float voltage_div, min = 1000, inputNumber=4; //change inputNumber to variate number of cells. 
+float voltage_div, min = 1000, temporary, previous_voltage, inputNumber=4; //change inputNumber to variate number of cells. 
 float inputList[]={} ;                      // {0, 0, 0, 0};      //Change here to variate cell number. change input list size and add zero according to the array size.
 String str1 = "";
 
@@ -16,8 +16,12 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly:
   str1="";
+  previous_voltage=0;
+  temporary=0;
   for (int i=0; i<inputNumber; i++) {
-    inputList[i] = analogRead(i)*(5/1023)*voltage_div;    //analogRead() returns btw (0 to 1023)
+    temporary = analogRead(i)*(5/1023)*voltage_div;    //analogRead() returns btw (0 to 1023)
+    inputList[i]=temporary - previous_voltage;
+    previous_voltage=temporary;
     str1+=("A"+String(i)+" = "+String(inputList[i])+"   ");
   }
   
@@ -41,4 +45,3 @@ void loop() {
   delay(1000);
   
 }
-
