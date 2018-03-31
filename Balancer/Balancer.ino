@@ -1,47 +1,52 @@
-float voltage_div, min = 1000, temporary, previous_voltage, inputNumber=4; //change inputNumber to variate number of cells. 
-float inputList[]={} ;                      // {0, 0, 0, 0};      //Change here to variate cell number. change input list size and add zero according to the array size.
-String str1 = "";
+//variate inputNumber to increase or decrease # of inputs
+//variate analog_inputs and digital_outputs to increase, decrease # of pins or to change pins
+float voltage_div=3,inputNumber=4, temporary, average;
+int analog_inputs[]={A0,A1,A2,A3};
+int digital_outputs[]={2,3,4,5};
+float voltages[]={};
 
+void blinking(){
+  //builtin led blinks
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(500);
+    digitalWrite(LED_BUILTIN, LOW);
+    delay(500);
+}
 
 void setup() {
   // put your setup code here, to run once:
-  voltage_div = 6;  //input must be inp<5 Volts. all values divided by voltage divider. Change here to variate divider proportion.
-                                                                                                                 //inputNumber=6;//(int)(sizeof(inputList)/ sizeof(inputList[0]));
-  Serial.begin(9600);              //  setup serial
-  for (int i=0; i<inputNumber; i++){  pinMode(i, OUTPUT); }
-
+  Serial.begin(9600);
+  pinMode(LED_BUILTIN, OUTPUT);
+  
+  for (int i=0; i<inputNumber; i++){
+    //pinMode(analog_inputs[i], INPUT);
+    pinMode(digital_outputs[i], OUTPUT);
+    voltages[i]=0;
+  }
+  
 }
-
 
 void loop() {
   // put your main code here, to run repeatedly:
-  str1="";
-  previous_voltage=0;
+  Serial.print("hello");
   temporary=0;
-  for (int i=0; i<inputNumber; i++) {
-    temporary = analogRead(i)*(5/1023)*voltage_div;    //analogRead() returns btw (0 to 1023)
-    inputList[i]=temporary - previous_voltage;
-    previous_voltage=temporary;
-    str1+=("A"+String(i)+" = "+String(inputList[i])+"   ");
+  for (int i=0; i<inputNumber; i++){
+    voltages[i] = (analogRead(analog_inputs[i])*voltage_div*5/1023)-temporary;
+    temporary += voltages[i];
   }
-  
-  Serial.print(str1);
+  average = temporary/inputNumber;
+  Serial.println(average);
 
-  for (int i=0; i<inputNumber; i++) {
-    if (inputList[i]<min){min=inputList[i]; }
-  }
-
-
-  for (int i=0; i<inputNumber; i++) {          //check voltage values and close switches
+  for (int i=0; i<inputNumber; i++){
+    if (voltages[i] > average){
+      digitalWrite(digital_outputs[i],HIGH); 
+    }
     
-    if (inputList[i]-min>0.1){              //allowed voltage diff. 0.1 Volts
-      if (digitalRead(i)==LOW){digitalWrite(i, HIGH); Serial.println("switch #"+String(i)+" is closed.\n"); }
+    else{
+      digitalWrite(digital_outputs[i],LOW);
     }
-  
-    else {
-      if (digitalRead(i)==HIGH) {digitalWrite(i, LOW);  Serial.println("switch #"+String(i)+" is opened.\n");}
-    }
+    
   }
-  delay(1000);
-  
+
+  blinking();
 }
